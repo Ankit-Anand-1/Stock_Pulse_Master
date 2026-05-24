@@ -3,12 +3,13 @@ importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compa
 
 // These will be replaced by the build process or provided via a message
 const firebaseConfig = {
-  projectId: "inspired-bit-tjlsj",
-  appId: "1:581885774772:web:060ab2ceee82dbac45c0e1",
-  apiKey: "AIzaSyDRygshEvlEgxpPD1Fm1lB1X05XTTQf10s",
-  authDomain: "inspired-bit-tjlsj.firebaseapp.com",
-  storageBucket: "inspired-bit-tjlsj.firebasestorage.app",
-  messagingSenderId: "581885774772"
+  apiKey: "AIzaSyDeKTj0VbGQA6ZOHmzPvJZuC4YRsWqncAg",
+  authDomain: "inspired-bit-tjlsj-5b6ee.firebaseapp.com",
+  projectId: "inspired-bit-tjlsj-5b6ee",
+  storageBucket: "inspired-bit-tjlsj-5b6ee.firebasestorage.app",
+  messagingSenderId: "49724236906",
+  appId: "1:49724236906:web:5db8553f69d6f26cf6d613",
+  measurementId: "G-F7KQ0HEK55"
 };
 
 firebase.initializeApp(firebaseConfig);
