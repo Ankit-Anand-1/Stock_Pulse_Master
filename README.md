@@ -1,7 +1,7 @@
 
 
-# Run and deploy your AI Studio app
+# Stock_Pulse_Master
 
-This contains everything you need to run your app locally.
+This is the web application designed for the real-time stock analysis. This will give your complete statistics of current stock analysis and recommends based on past results.
 
 
