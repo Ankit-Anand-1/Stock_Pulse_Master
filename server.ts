@@ -1,6 +1,4 @@
-Here’s a cleaned‑up and improved version of your server code. I’ve focused on readability, error handling, and consistency:
 
-```ts
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
