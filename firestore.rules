@@ -1,0 +1,127 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Phase 3: Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Pillar 2: Validation Blueprints
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email']) 
+        && data.uid is string && data.uid.size() <= 128
+        && data.email is string && data.email.size() <= 256
+        && data.uid == request.auth.uid;
+    }
+
+    function isValidHolding(data) {
+      return data.keys().hasAll(['userId', 'symbol', 'quantity', 'averagePrice', 'updatedAt'])
+        && data.userId is string && data.userId == request.auth.uid
+        && data.symbol is string && data.symbol.size() <= 16
+        && data.quantity is number
+        && data.averagePrice is number
+        && data.updatedAt == request.time;
+    }
+
+    function isValidTransaction(data) {
+      return data.keys().hasAll(['userId', 'symbol', 'type', 'quantity', 'price', 'timestamp'])
+        && data.userId is string && data.userId == request.auth.uid
+        && data.symbol is string && data.symbol.size() <= 16
+        && data.type in ['buy', 'sell']
+        && data.quantity is number && data.quantity > 0
+        && data.price is number && data.price > 0
+        && data.timestamp == request.time;
+    }
+
+    function isValidAlert(data) {
+      return data.keys().hasAll(['userId', 'symbol', 'targetPrice', 'condition', 'active', 'createdAt'])
+        && data.userId is string && data.userId == request.auth.uid
+        && data.symbol is string && data.symbol.size() <= 16
+        && data.targetPrice is number && data.targetPrice > 0
+        && data.condition in ['above', 'below']
+        && data.active is bool
+        && data.createdAt == request.time;
+    }
+
+    function isValidNotification(data) {
+      return data.keys().hasAll(['userId', 'title', 'body', 'read', 'timestamp'])
+        && data.userId is string && data.userId == request.auth.uid
+        && data.title is string && data.title.size() <= 100
+        && data.body is string && data.body.size() <= 500
+        && data.read is bool
+        && data.timestamp == request.time;
+    }
+
+    // Pillar 1: Matching Collections
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'photoURL', 'fcmToken']);
+    }
+
+    match /portfolios/{portfolioId} {
+      // portfolioId can be anything, but we usually use userId_symbol
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      allow create: if isSignedIn() && isValidHolding(incoming());
+      allow update: if isSignedIn() && existing().userId == request.auth.uid 
+        && isValidHolding(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['quantity', 'averagePrice', 'updatedAt']);
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /transactions/{transactionId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      allow create: if isSignedIn() && isValidTransaction(incoming());
+      // Transactions are immutable
+      allow update, delete: if false;
+    }
+
+    match /alerts/{alertId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      allow create: if isSignedIn() && isValidAlert(incoming());
+      allow update: if isSignedIn() && existing().userId == request.auth.uid 
+        && isValidAlert(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['active', 'targetPrice', 'condition', 'createdAt']);
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    match /notifications/{notificationId} {
+      allow get: if isSignedIn() && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      
+      // Only system (or user for marking read) should create/update
+      allow create: if isSignedIn() && isValidNotification(incoming());
+      allow update: if isSignedIn() && existing().userId == request.auth.uid 
+        && incoming().diff(existing()).affectedKeys().hasOnly(['read']);
+      allow delete: if isSignedIn() && existing().userId == request.auth.uid;
+    }
+  }
+}

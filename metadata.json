@@ -1,0 +1,8 @@
+{
+  "name": "StockPulse Dashboard",
+  "description": "Real-time stock market tracker with live price data, historical charts, and AI-powered sentiment analysis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
