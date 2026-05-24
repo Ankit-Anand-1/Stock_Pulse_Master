@@ -5,12 +5,12 @@ import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, (firebaseConfig as any).firestoreDatabaseId);
+export const db = getFirestore(app);
 export const auth = getAuth(app);
 
 // Use a placeholder public VAPID key if not provided in config
 // In a real app, this comes from the Firebase Console -> Project Settings -> Cloud Messaging -> Web Configuration
-const VAPID_KEY = "BPM_PLACEHOLDER_VAPID_KEY"; // Ideally user provides this
+const VAPID_KEY = "BEcQlwi3ZXSWDrERddzR0ghNTune09Kq8dUPbeHhWD6yLhqHGaxHG90UOw8wR0nXwfSp-N6Nuj5y1p5fbr5Z8R8"; // Ideally user provides this
 
 export async function requestNotificationPermission(userId: string) {
   try {
